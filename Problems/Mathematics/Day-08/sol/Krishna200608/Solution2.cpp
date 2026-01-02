@@ -1,133 +1,100 @@
 /*
 Problem: Expected Median
 Link: https://codeforces.com/problemset/problem/1999/F
-Author: Krishna Sikheriya (Krishna200608)
+Author: Krishna200608
 
 Short Problem Statement:
-Given a binary array a of length n, Arul takes all subsequences of length k (k is odd).
-Find the sum of medians of all these subsequences modulo 10^9 + 7.
-Since the array is binary, the median is either 0 or 1.
+Calculate the sum of medians of all subsequences of length k from a binary array.
+Result modulo 1e9+7.
 
 Approach:
-1. In a binary array, the median of a subsequence of odd length k is 1 if and only if
-   the count of 1s in the subsequence is at least (k + 1) / 2. Otherwise, it is 0.
-2. Since we need the sum of medians, we simply need to count how many subsequences have 
-   median 1 (since median 0 contributes nothing to the sum).
-3. Let total_ones be the count of 1s in the array, and total_zeros be n - total_ones.
-4. We need to choose exactly k elements to form a subsequence.
-   Let i be the number of 1s chosen. We must choose (k - i) zeros.
-5. The condition for median 1 is: i >= (k + 1) / 2.
-6. The number of ways to form such a subsequence for a fixed i is:
-   Ways(i) = nCr(total_ones, i) * nCr(total_zeros, k - i).
-7. We iterate i from (k + 1) / 2 up to min(k, total_ones) and sum the ways modulo 10^9 + 7.
-8. We use precomputed factorials and modular inverse to compute nCr efficiently.
+    Since the array has only 0s and 1s, the median is 1 if count(1s) >= (k+1)/2 in the subsequence.
+    Otherwise, median is 0 and doesn't contribute to sum.
+    Count total 1s (c1) and 0s (c0) in input.
+    Iterate i (number of 1s picked) from (k+1)/2 to k.
+    Add nCr(c1, i) * nCr(c0, k-i) to answer.
+    Use precomputed factorials for nCr.
 
-Time Complexity: O(N) due to precomputing factorials. Each test case takes O(K) which is <= O(N).
-Space Complexity: O(N) to store factorials.
-
-Example I/O:
-Input:
-5 1
-1 1 1 1 1
-Output:
-5
+Time Complexity: O(N)
+Space Complexity: O(N)
 */
 
-#include <iostream>
-#include <vector>
+/*
+SUBMISSION LINK:
+https://codeforces.com/contest/1999/submission/356178663
+*/
 
+#include <bits/stdc++.h>
 using namespace std;
 
-long long MOD = 1e9 + 7;
-const int MAXN = 200005;
+using ll = long long;
 
-vector<long long> fact(MAXN);
-vector<long long> invFact(MAXN);
+const int MOD = 1e9 + 7;
+const int MX = 200005;
 
-// Function to compute modular exponentiation: (base^exp) % mod
-long long power(long long base, long long exp) {
-    long long res = 1;
-    base %= MOD;
-    while (exp > 0) {
-        if (exp % 2 == 1) res = (res * base) % MOD;
-        base = (base * base) % MOD;
-        exp /= 2;
+ll f[MX], invf[MX];
+
+ll pw(ll a, ll e) {
+    ll r = 1;
+    a %= MOD;
+    while (e) {
+        if (e & 1) r = (r * a) % MOD;
+        a = (a * a) % MOD;
+        e >>= 1;
     }
-    return res;
+    return r;
 }
 
-// Function to compute modular inverse
-long long modInverse(long long n) {
-    return power(n, MOD - 2);
+ll inv(ll x) {
+    return pw(x, MOD - 2);
 }
 
-// Precompute factorials and inverse factorials
-void precompute() {
-    fact[0] = 1;
-    invFact[0] = 1;
-    for (int i = 1; i < MAXN; i++) {
-        fact[i] = (fact[i - 1] * i) % MOD;
-    }
-    invFact[MAXN - 1] = modInverse(fact[MAXN - 1]);
-    for (int i = MAXN - 2; i >= 1; i--) {
-        invFact[i] = (invFact[i + 1] * (i + 1)) % MOD;
-    }
+void pre() {
+    f[0] = invf[0] = 1;
+    for (int i = 1; i < MX; i++) f[i] = (f[i - 1] * i) % MOD;
+    invf[MX - 1] = inv(f[MX - 1]);
+    for (int i = MX - 2; i >= 1; i--)
+        invf[i] = (invf[i + 1] * (i + 1)) % MOD;
 }
 
-// nCr calculation
-long long nCr(int n, int r) {
+ll C(int n, int r) {
     if (r < 0 || r > n) return 0;
-    return (((fact[n] * invFact[r]) % MOD) * invFact[n - r]) % MOD;
+    return f[n] * invf[r] % MOD * invf[n - r] % MOD;
 }
 
 void solve() {
     int n, k;
-    if (!(cin >> n >> k)) return;
+    cin >> n >> k;
 
-    int ones = 0;
-    for (int i = 0; i < n; ++i) {
-        int val;
-        cin >> val;
-        if (val == 1) ones++;
-    }
-    
-    int zeros = n - ones;
-    int min_ones_needed = (k + 1) / 2;
-    
-    long long total_sum = 0;
+    vector<ll> a(n);
+    for (int i = 0; i < n; i++) cin >> a[i];
 
-    // Iterate through possible counts of 1s in the subsequence
-    // We need at least min_ones_needed 1s
-    // We can pick at most 'ones' (total available) and at most 'k' (subsequence size)
-    for (int i = min_ones_needed; i <= k; ++i) {
-        // If we pick i ones, we need (k - i) zeros
-        int zeros_needed = k - i;
-        
-        if (i <= ones && zeros_needed <= zeros && zeros_needed >= 0) {
-            long long ways = (nCr(ones, i) * nCr(zeros, zeros_needed)) % MOD;
-            total_sum = (total_sum + ways) % MOD;
-        }
+    int o = 0;
+    for (ll x : a) if (x == 1) o++;
+    int z = n - o;
+
+    int mn = (k + 1) / 2;
+    ll res = 0;
+
+    for (int i = mn; i <= k; i++) {
+        int j = k - i;
+        res = (res + C(o, i) * C(z, j)) % MOD;
     }
 
-    cout << total_sum << "\n";
+    cout << res << "\n";
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-    precompute();
+    pre();
 
     int t;
-    if (cin >> t) {
-        while (t--) {
-            solve();
-        }
-    }
+    cin >> t;
+    while (t--) solve();
+
     return 0;
 }
 
-/*
-SUBMISSION LINK:
-https://codeforces.com/contest/1999/submission/356145308
-*/
+
