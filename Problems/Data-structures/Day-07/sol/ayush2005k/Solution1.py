@@ -1,6 +1,6 @@
 """
 Problem: C. Number of Pairs
-Link: https://codeforces.com/problemset/problem/1535/C
+Link: https://codeforces.com/problemset/problem/1538/C
 
 Short Problem Statement:
 Given an array of integers, count the number of index pairs (i, j)
