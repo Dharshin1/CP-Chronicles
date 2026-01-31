@@ -14,26 +14,6 @@ For each node:
 - Otherwise, reset the count to zero.
 If the count exceeds m, stop DFS on that path.
 If we reach a leaf node with valid cat constraint, count it.
-
-Time Complexity: O(n)
-Space Complexity: O(n)
-
-Example:
-Input:
-7 1
-1 0 1 1 0 0 0
-1 2
-1 3
-2 4
-2 5
-3 6
-3 7
-
-Output:
-2
-
-Submission Link:
-https://github.com/your-username/your-repo/pull/XXX
 */
 
 #include <bits/stdc++.h>
